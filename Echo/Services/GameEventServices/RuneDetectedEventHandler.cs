@@ -68,7 +68,7 @@ namespace Echo.Services.GameEventServices
                     ScanCodeShort keyCode = ScanCodeShort.DOWN;
                     switch (dir.Item1)
                     {
-                        case "RIGHT": keyCode = ScanCodeShort.LEFT; break;
+                        case "RIGHT": keyCode = ScanCodeShort.RIGHT; break;
                         case "LEFT": keyCode = ScanCodeShort.LEFT; break;
                         case "UP": keyCode = ScanCodeShort.UP; break;
                         case "DOWN": keyCode = ScanCodeShort.DOWN; break;

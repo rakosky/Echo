@@ -37,7 +37,7 @@ namespace Echo.Services.GameEventServices
 
         public async Task<GameEventType> EventDetected(PixelSnapshot pixelSnapshot)
         {
-            if (await _mapAnalyzer.GetRuneLocation(pixelSnapshot) is Point point)
+            if (_mapAnalyzer.GetRuneLocation(pixelSnapshot) is Point point)
             {
                 _activeRuneLoc = point;
                 return GameEventType.Rune;
@@ -53,22 +53,22 @@ namespace Echo.Services.GameEventServices
             _inputSender.ReleaseAllPressed();
             await _playerController.GoTo(_activeRuneLoc!.Value, ct);
             _logger.LogInformation("Arrived at rune");
-            await Task.Delay(1200, ct);
-            _logger.LogInformation("Activating rune");
+            await Task.Delay(200, ct);
             _inputSender.SendKey(CommonHotkeys.NPC_CHAT_KEY);
             await Task.Delay(2000, ct);
 
             var dirs = await _runeAnalyzer.FindArrowDirections(ct);
-            _logger.LogInformation($"Determined {dirs.Count} directions. {string.Join(',', dirs)}");
-
+            
+            string logMessage = $"Determined {dirs.Count} directions. {string.Join(',', dirs)}";
             if (dirs.Count == 4)
             {
+                _logger.LogInformation(logMessage);
                 foreach (var dir in dirs)
                 {
                     ScanCodeShort keyCode = ScanCodeShort.DOWN;
                     switch (dir.Item1)
                     {
-                        case "RIGHT": keyCode = ScanCodeShort.RIGHT; break;
+                        case "RIGHT": keyCode = ScanCodeShort.LEFT; break;
                         case "LEFT": keyCode = ScanCodeShort.LEFT; break;
                         case "UP": keyCode = ScanCodeShort.UP; break;
                         case "DOWN": keyCode = ScanCodeShort.DOWN; break;
@@ -82,10 +82,13 @@ namespace Echo.Services.GameEventServices
             }
             else
             {
+                _logger.LogError(logMessage);
                 _runeAnalyzer.CurrentRuneAttempts++;
+                // Spicy lil attack to clear potential floating mob if we are failing runes?
+                _inputSender.SendKey(ScanCodeShort.LCONTROL);
             }
-            await Task.Delay(2000, ct);
-            _inputSender.SendKey(ScanCodeShort.LCONTROL);
+
+            await Task.Delay(1000, ct);
         }
     }
 }

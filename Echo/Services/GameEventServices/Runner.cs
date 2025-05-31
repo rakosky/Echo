@@ -12,6 +12,7 @@ namespace Echo.Services.GameEventServices
         List<IGameEventChecker> _gameEventCheckers;
         OrcamPlayer _orcamPlayer;
         ScreenshotProvider _screenshotProvider;
+        GameFocusManager _gameFocusManager;
 
         CancellationTokenSource _eventCheckCTS;
         CancellationToken _eventCheckCT;
@@ -22,23 +23,43 @@ namespace Echo.Services.GameEventServices
         GameEventType _currentEvent = GameEventType.None;
         Task? _eventLoopTask = null;
         Task? _currentHandlerTask = null;
+
+        public bool ResumeOnFocus { get; set; } = false;
+        public bool IsRunning => _eventLoopTask != null;// && (_eventLoopTask.Status ==  _eventLoopTask.IsCompleted || _eventLoopTask.IsCanceled || _eventLoopTask.IsCompletedSuccessfully);
+
         public Runner(
             ILogger<Runner> logger,
             IEnumerable<IGameEventHandler> gameEventHandlers,
             IEnumerable<IGameEventChecker> gameEventCheckers,
             OrcamPlayer orcamPlayer,
-            ScreenshotProvider screenshotProvider)
+            ScreenshotProvider screenshotProvider,
+            GameFocusManager gameFocusManager)
         {
             _logger = logger;
             _gameEventHandlers = gameEventHandlers.ToList();
             _gameEventCheckers = gameEventCheckers.ToList();
             _orcamPlayer = orcamPlayer;
             _screenshotProvider = screenshotProvider;
+            _gameFocusManager = gameFocusManager;
+
+            _gameFocusManager.OnFocusChanged += (focused) =>
+            {
+                if (focused && !IsRunning && ResumeOnFocus)
+                    Start();
+                else if(!focused && IsRunning)
+                    _ = Stop();
+            };
         }
 
 
         public void Start()
         {
+            if (IsRunning)
+            {
+                _logger.LogInformation("Event loop is already running");
+                return;
+            }
+
             _eventCheckCTS = new CancellationTokenSource();
             _eventHandlerCTS = new CancellationTokenSource();
             _eventCheckCT = _eventCheckCTS.Token;
@@ -51,18 +72,28 @@ namespace Echo.Services.GameEventServices
 
         public async Task Stop()
         {
-            // 1) signal both loops to stop
+            if (!IsRunning)
+            {
+                _logger.LogInformation("Event loop is not running");
+                return;
+            }
+
+            // signal both loops to stop
             _eventCheckCTS.Cancel();
             _eventHandlerCTS.Cancel();
 
             if (_currentHandlerTask is not null)
-                await _currentHandlerTask;       // any active handler
+            {
+                await _currentHandlerTask;
+                _currentHandlerTask = null;
+            }
 
-            // 2) wait for graceful completion
             if (_eventLoopTask is not null)
-                await _eventLoopTask;            // event-check loop
+            {
+                await _eventLoopTask;
+                _eventLoopTask = null;
+            }
 
-            // 3) NOW it’s safe to dispose the CTS objects
             _eventCheckCTS.Dispose();
             _eventHandlerCTS.Dispose();
         }
@@ -157,18 +188,18 @@ namespace Echo.Services.GameEventServices
                 _currentEvent = handler.EventType;
                 await handler.HandleEvent(ct);
                 _logger.LogInformation($"Handler for event {e} completed successfully.");
+                _orcamPlayer.Play();
+            }
+            catch (TaskCanceledException tcEx)
+            {
+                _logger.LogInformation($"Handler for event {e} gracefully cancelled");
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Handler for event {e} failed");
             }
-            finally
-            {
-                _currentEvent = GameEventType.None;
-                _orcamPlayer.Play();
-            }
+            _currentEvent = GameEventType.None;
         }
-
-
     }
 }

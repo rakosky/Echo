@@ -28,7 +28,7 @@ namespace Echo.Services
         public void SendKey(ScanCodeShort scanCode, KeyPressType type = KeyPressType.PRESS)
         {
             // helper to build a single INPUT in one line
-            static INPUT MakeInput(ScanCodeShort sc, KEYEVENTF flags) => new INPUT
+            static INPUT MakeInput(ScanCodeShort sc, KEYEVENTF flags, int time = 0) => new INPUT
             {
                 type = 1, // keyboard
                 U = new()
@@ -38,7 +38,7 @@ namespace Echo.Services
                         wVk = 0,
                         wScan = sc,
                         dwFlags = flags,
-                        time = 0,
+                        time = time,
                         dwExtraInfo = UIntPtr.Zero
                     }
                 }
@@ -65,7 +65,7 @@ namespace Echo.Services
                     {
                         INPUT[] seq =
                         {
-                            MakeInput(scanCode, KEYEVENTF.SCANCODE),
+                            MakeInput(scanCode, KEYEVENTF.SCANCODE, 25),
                             MakeInput(scanCode, KEYEVENTF.SCANCODE | KEYEVENTF.KEYUP)
                         };
 

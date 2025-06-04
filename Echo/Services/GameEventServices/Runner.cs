@@ -44,10 +44,16 @@ namespace Echo.Services.GameEventServices
 
             _gameFocusManager.OnFocusChanged += (focused) =>
             {
-                if (focused && !IsRunning && ResumeOnFocus)
+                if (focused && !IsRunning && ResumeOnFocus) 
+                {
+                    _logger.LogInformation("Game window focused. Resuming event check loop");
                     Start();
-                else if(!focused && IsRunning)
+                }
+                else if (!focused && IsRunning)
+                {
+                    _logger.LogInformation("Game window lost focus. Stopping event check loop");
                     _ = Stop();
+                }
             };
         }
 

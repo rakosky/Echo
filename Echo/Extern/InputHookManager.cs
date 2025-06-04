@@ -52,8 +52,6 @@ namespace Echo.Extern
                 var hookId = SetWindowsHookEx(hookMethod, proc,
                     GetModuleHandle(curModule.ModuleName), 0);
 
-                Console.WriteLine($"Set hook: {hookMethod}, result: {hookId}");
-
                 return hookId;
             }
         }

@@ -59,7 +59,7 @@ namespace Echo.Services
                 var original = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
                 bool wasInjected = (original.flags & InputHookManager.LLKHF_INJECTED) != 0;
 
-                Console.WriteLine($"KB hook {original.scanCode} - injected: {wasInjected}");
+                //Console.WriteLine($"KB hook {original.scanCode} - injected: {wasInjected}");
 
                 if (!wasInjected)
                     return InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, lParam);
@@ -72,7 +72,7 @@ namespace Echo.Services
 
                 // Forward modified struct 
                 IntPtr result = InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, modifiedPtr);
-                Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLKHF_INJECTED) != 0}");
+                //Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLKHF_INJECTED) != 0}");
 
                 Marshal.FreeHGlobal(modifiedPtr); // Clean up
                 return result;
@@ -95,7 +95,7 @@ namespace Echo.Services
                 MSLLHOOKSTRUCT original = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
                 bool wasInjected = (original.flags & InputHookManager.LLMHF_INJECTED) != 0;
 
-                Console.WriteLine($"Mouse moved to {original.pt.x},{original.pt.y} - Injected: {wasInjected}");
+                //Console.WriteLine($"Mouse moved to {original.pt.x},{original.pt.y} - Injected: {wasInjected}");
 
                 // Clone and remove the injected flag
                 if (!wasInjected)
@@ -107,7 +107,7 @@ namespace Echo.Services
                 IntPtr fakeLParam = Marshal.AllocHGlobal(Marshal.SizeOf<MSLLHOOKSTRUCT>());
                 Marshal.StructureToPtr(modified, fakeLParam, false);
 
-                Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLMHF_INJECTED) != 0}");
+                //Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLMHF_INJECTED) != 0}");
 
                 IntPtr result = InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, fakeLParam);
 
@@ -127,7 +127,7 @@ namespace Echo.Services
                 try
                 {
                     _logger.LogInformation("Refreshing hooks");
-                    RefreshHooks();
+                    await RefreshHooks();
                 }
                 catch (Exception ex)
                 {

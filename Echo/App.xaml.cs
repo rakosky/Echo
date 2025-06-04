@@ -77,7 +77,8 @@ namespace Echo
             services.AddSingleton<PlayerController>();
             services.AddSingleton<DiscordBotService>();
             services.AddSingleton(new SoundPlayer("alarm.wav"));
-
+            
+            services.AddSingleton<FlagRemovalHookManager>();
 
             services.AddSingleton<MainWindowViewModel>();
 
@@ -86,6 +87,7 @@ namespace Echo
             services.AddSingleton<MainWindow>();
             _serviceProvider = services.BuildServiceProvider();
 
+            _ = _serviceProvider.GetRequiredService<FlagRemovalHookManager>().StartHookManagementLoop();
             _ = Task.Run(() => _serviceProvider.GetRequiredService<ScreenshotProvider>().StartScreenCaptureLoop());
             _ = Task.Run(() => _serviceProvider.GetRequiredService<ProcessProvider>().StartProcessCaptureLoop());
             _ = Task.Run(() => _serviceProvider.GetRequiredService<GameFocusManager>().StartFocusCheckLoop());

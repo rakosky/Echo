@@ -46,7 +46,7 @@ namespace Echo
         {
             if (CurrentOrcam is null)
             {
-                MessageBox.Show("Load a macro first.");
+                MessageBox.Show("Load a ocram first.");
                 return;
             }
 
@@ -83,11 +83,11 @@ namespace Echo
         public void Save()
         {
             if (CurrentOrcam == null)
-                throw new Exception("No macro to save");
+                throw new Exception("No ocram to save");
 
 
             CurrentOrcam.Name = NewOrcamName ?? Guid.NewGuid().ToString();
-            var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cultivation3", "Macros", $"{CurrentOrcam.Name}.json");
+            var filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Echo", "Ocrams", $"{CurrentOrcam.Name}.json");
             SerializationHelper.SerializeToFile(CurrentOrcam, filePath);
         }
     }

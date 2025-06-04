@@ -17,12 +17,10 @@ namespace Echo.Services
         public void ReleaseAllPressed()
         {
             // Determine currently pressed keys and release them
-            Console.WriteLine("Releasing all keys");
             for (int i = 0; i < 256; i++)
             {
                 if ((GetAsyncKeyState(i) & 0x8000) != 0)
                 {
-                    Console.WriteLine($"Releasing key {i}");
                     keybd_event((byte)i, 0, 0x0002, 0);
                 }
             }
@@ -65,7 +63,6 @@ namespace Echo.Services
                 case KeyPressType.PRESS:
                 default:
                     {
-                        // 2-element array: Down followed by Up
                         INPUT[] seq =
                         {
                             MakeInput(scanCode, KEYEVENTF.SCANCODE),

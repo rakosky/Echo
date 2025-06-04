@@ -114,15 +114,16 @@ namespace Echo.Services
         //attempt to move player to (x, y) position on screen, relative to minimap
         public async Task GoTo(Point target, CancellationToken ct)
         {
+            var recheckLoopDelay = 100;
             _logger.LogInformation($"GoTo X = {target.X} and Y = {target.Y}.");
-            int i = 0;
+
             var posQueue = new Queue<Point?>();
             while (!ct.IsCancellationRequested)
             {
                 var pixelSnapshot = await _screenshotProvider.GetLatestPixels();
-                Point? playerLoc = await _mapAnalyzer.GetPlayerLocation(pixelSnapshot);
-                
-                if (playerLoc is null || (playerLoc.Value.X == 0 && playerLoc.Value.Y == 0))
+                Point? playerLoc = _mapAnalyzer.GetPlayerLocation(pixelSnapshot);
+
+                if (playerLoc is null)
                 {
                     _logger.LogError("Cant find player");
                     continue;
@@ -133,15 +134,38 @@ namespace Echo.Services
 
                 int x2 = target.X;
                 int y2 = target.Y;
-                //Console.WriteLine($"Found player at {DateTime.Now} @ X = {playerLoc.Value.X} and Y = {playerLoc.Value.Y}.");
-                await Task.Delay(40, ct);
+
+
                 //There are delays between taking a screenshot, processing the image, sending the key press, and game server ping.
-                //Player should be within 2 pixels of x-destination and 7 pixels of y-destination.
-                if (Math.Abs(x1 - x2) < 3)
+                // X distance check & handling
+                if (Math.Abs(x1 - x2) > 5)
                 {
-                    // Player has reached target x-destination, release all held keys.
+                    _inputSender.SendKey(ScanCodeShort.DOWN, KeyPressType.UP);
+
+                    if (x1 < x2)
+                    {
+                        _inputSender.SendKey(ScanCodeShort.LEFT, KeyPressType.UP);
+                        _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.DOWN);
+                    }
+                    // Player is to the right of target x-position.
+                    else
+                    {
+                        _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.UP);
+                        _inputSender.SendKey(ScanCodeShort.LEFT, KeyPressType.DOWN);
+                    }
+                    if (Math.Abs(x2 - x1) > 30)
+                    {
+                        _inputSender.SendKey(JUMP_KEY);
+                        _inputSender.SendKey(JUMP_KEY);
+                    }
+                }
+
+                // Player has reached target x-destination, move to point one Y axis
+                else
+                {
                     _inputSender.ReleaseAllPressed();
-                    if (Math.Abs(y2 - y1) < 7)
+
+                    if (Math.Abs(y2 - y1) < 10)
                     {
                         // Player has reached target y-destination, release all held keys.
                         _inputSender.ReleaseAllPressed();
@@ -173,24 +197,26 @@ namespace Echo.Services
                             await Task.Delay(27, ct);
                             _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.UP);
 
-
-                            //InputHub.SendKey(JUMP_KEY);
-                            //Thread.Sleep(300);
-                            //InputHub.SendKey(ScanCodeShort.UP, KeyPressType.DOWN);
-                            //Thread.Sleep(200);
-                            //InputHub.SendKey(JUMP_KEY);
-                            //Thread.Sleep(500);
-                            //InputHub.SendKey(ScanCodeShort.UP, KeyPressType.UP);
                             _inputSender.SendKey(ROPE_LIFT_KEY);
                         }
                         else if (y1 - y2 > 5)
                         {
-                            _inputSender.SendKey(ROPE_LIFT_KEY);
-                            await Task.Delay(1000, ct);
-                            //Keyboard.SendKey(ScanCodeShort.UP);
+                            //up jump
+                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
+                            await Task.Delay(78, ct);
+                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);
+                            await Task.Delay(38, ct);
+                            _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.DOWN);
+                            await Task.Delay(61, ct);
+                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
+                            await Task.Delay(136, ct);
+                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);
+                            await Task.Delay(27, ct);
+                            _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.UP);
                         }
                         else
                         {
+                            // simple jump
                             _inputSender.SendKey(ScanCodeShort.UP);
                             _inputSender.SendKey(JUMP_KEY);
                         }
@@ -198,28 +224,9 @@ namespace Echo.Services
                     // Delay for player falling down or jumping up.
                     await Task.Delay(500, ct);
                 }
-                else
-                {
-                    _inputSender.SendKey(ScanCodeShort.DOWN, KeyPressType.UP);
 
-                    if (x1 < x2)
-                    {
-                        _inputSender.SendKey(ScanCodeShort.LEFT, KeyPressType.UP);
-                        _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.DOWN);
-                    }
-                    // Player is to the right of target x-position.
-                    else
-                    {
-                        _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.UP);
-                        _inputSender.SendKey(ScanCodeShort.LEFT, KeyPressType.DOWN);
-
-                    }
-                    if (Math.Abs(x2 - x1) > 30)
-                    {
-                        _inputSender.SendKey(JUMP_KEY);
-                        _inputSender.SendKey(JUMP_KEY);
-                    }
-                }
+                // If player is at the same position for too long we try to unstick them
+                posQueue.Enqueue(playerLoc);
                 if (posQueue.Count > 4)
                 {
                     if (posQueue.All(p => p.Value.X == playerLoc.Value.X && p.Value.Y == playerLoc.Value.Y))
@@ -230,9 +237,10 @@ namespace Echo.Services
                         await Task.Delay(30, ct);
                         _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.UP);
                     }
-                    posQueue.Dequeue();
+                    posQueue.Clear();
                 }
-                posQueue.Enqueue(playerLoc);
+
+                await Task.Delay(recheckLoopDelay, ct);
             }
             _logger.LogInformation($"GoTo X = {target.X} and Y = {target.Y} complete.");
             _inputSender.ReleaseAllPressed();

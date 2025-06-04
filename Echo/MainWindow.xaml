@@ -14,7 +14,7 @@
             Content="Load macro"
             Click="BrowseButton_Click" Margin="440,208,222,164" />
         <Button Content="Stop" HorizontalAlignment="Left" Margin="223,307,0,0" VerticalAlignment="Top" Width="78" Click="ButtonStop_Click"/>
-        <TextBox HorizontalAlignment="Left" Margin="575,355,0,0" TextWrapping="Wrap"   Text="{Binding NewMacroName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Macro name" VerticalAlignment="Top" Width="120"/>
+        <TextBox HorizontalAlignment="Left" Margin="575,355,0,0" TextWrapping="Wrap"   Text="{Binding NewOrcamName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Macro name" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

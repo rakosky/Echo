@@ -28,7 +28,7 @@ namespace Echo.Services.ImageAnalysis
 
         public async Task UpdateMapBounds()
         {
-            var mapSearchBounds = new Rectangle(0,0, 500, 400);
+            var mapSearchBounds = new Rectangle(0,0, 700, 500);
 
             var imageData = await _screenshotProvider.GetLatestPixels();
 
@@ -109,14 +109,14 @@ namespace Echo.Services.ImageAnalysis
         }
 
 
-        public async Task<Point?> GetPlayerLocation(PixelSnapshot pixelSnapshot)
+        public Point? GetPlayerLocation(PixelSnapshot pixelSnapshot)
         {
             var location = Locate(pixelSnapshot, PLAYER_COLOR, _mapBounds);
             return location.FirstOrDefault();
         }
 
 
-        public async Task<Point?> GetRuneLocation(PixelSnapshot pixelSnapshot)
+        public Point? GetRuneLocation(PixelSnapshot pixelSnapshot)
         {
             var location = Locate(pixelSnapshot, RUNE_COLOR, _mapBounds);
             return location.FirstOrDefault();

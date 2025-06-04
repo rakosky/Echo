@@ -32,7 +32,7 @@ namespace Echo.Services.GameEventServices
             if (respawnBoxCoords is not null)
             {
                 _lastRespawnBoxCoords = respawnBoxCoords.Value;
-                return GameEventType.None;
+                return GameEventType.PlayerDied;
             }
             return GameEventType.None;
         }

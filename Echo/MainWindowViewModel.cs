@@ -7,6 +7,7 @@ using Echo.Util;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
 
 namespace Echo
 {
@@ -44,21 +45,29 @@ namespace Echo
         public async Task Start()
         {
             if (CurrentOrcam is null)
+            {
+                MessageBox.Show("Load a macro first.");
                 return;
+            }
+
 
             await _mapAnalyzer.UpdateMapBounds();
 
             _gameFocusManager.SetFocus();
 
             _orcamPlayer.SetOrcam(CurrentOrcam);
+
             _runner.Start();
+            _runner.ResumeOnFocus = true;
             _orcamPlayer.Play();
 
         }
         public async Task Stop()
         {
             _orcamPlayer.Stop();
-            _runner.Stop();
+
+            _runner.ResumeOnFocus = false;
+            _ = _runner.Stop();
         }
 
         public async Task Record()

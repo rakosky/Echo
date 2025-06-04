@@ -13,7 +13,7 @@ namespace Echo.Services
 
         private KeyboardHook _hook;
 
-        private List<OrcamCommand> _macroCommands;
+        private List<OrcamCommand> _commands;
 
         public OrcamRecorder(
             ILogger<OrcamRecorder> logger)
@@ -23,9 +23,9 @@ namespace Echo.Services
 
         public async Task<Orcam> Record()
         {
-            _logger.LogInformation("Recording macro...");
+            _logger.LogInformation("Recording...");
 
-             _macroCommands = new List<OrcamCommand>();
+             _commands = new List<OrcamCommand>();
 
             _timeHolder = TimeGetTime();
 
@@ -39,7 +39,7 @@ namespace Echo.Services
 
             return new Orcam()
             {
-                Commands = new(_macroCommands),
+                Commands = new(_commands),
             };
 
         }
@@ -68,7 +68,7 @@ namespace Echo.Services
             var now = TimeGetTime();
             long elapsed = now - _timeHolder;
             _timeHolder = now;
-            _macroCommands.Add(new OrcamCommand()
+            _commands.Add(new OrcamCommand()
             {
                 Type = wParam switch
                 {

@@ -45,7 +45,7 @@ namespace Echo
                 Title = "Select one or more files",
                 Filter = "Json Files (*.json)|*.json|All Files (*.*)|*.*",
                 Multiselect = false,
-                InitialDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cultivation3", "Macros")
+                InitialDirectory = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Cultivation3", "Ocrams")
             };
 
             if (dlg.ShowDialog() ?? false)

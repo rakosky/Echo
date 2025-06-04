@@ -10,21 +10,33 @@ namespace Echo.Services
         private MouseHook _mouseHook;
         private readonly ILogger<FlagRemovalHookManager> _logger;
 
+        private int _inKbCallback = 0;
+        private int _inMCallback = 0;
+
+
         public FlagRemovalHookManager(ILogger<FlagRemovalHookManager> logger)
         {
             _logger = logger;
         }
 
-        private void RefreshHooks()
+        private async Task RefreshHooks()
         {
             if (_kbHook != null)
             {
+                while (_inKbCallback > 0)
+                {
+                    await Task.Delay(10); // Wait for current callback to finish
+                }
                 InputHookManager.UnhookWindowsHookEx(_kbHook.hookID);
             }
             _kbHook = InputHookManager.CreateKeyboardHook(KeyboardHookCallback);
 
             if (_mouseHook != null)
             {
+                while (_inMCallback > 0)
+                {
+                    await Task.Delay(10); // Wait for current callback to finish
+                }
                 InputHookManager.UnhookWindowsHookEx(_mouseHook.hookID);
             }
             _mouseHook = InputHookManager.CreateMouseHook(MouseHookCallback);
@@ -39,14 +51,19 @@ namespace Echo.Services
         /// <returns></returns>
         private IntPtr KeyboardHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)InputHookManager.WM_KEYDOWN)
+            Interlocked.Increment(ref _inKbCallback);
+            try
             {
+                if (nCode < 0)
+                    return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
                 var original = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
                 bool wasInjected = (original.flags & InputHookManager.LLKHF_INJECTED) != 0;
 
                 Console.WriteLine($"KB hook {original.scanCode} - injected: {wasInjected}");
 
-                // Clone and remove LLKHF_INJECTED
+                if (!wasInjected)
+                    return InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, lParam);
+
                 var modified = original;
                 modified.flags &= ~InputHookManager.LLKHF_INJECTED;
 
@@ -55,40 +72,52 @@ namespace Echo.Services
 
                 // Forward modified struct 
                 IntPtr result = InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, modifiedPtr);
+                Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLKHF_INJECTED) != 0}");
 
                 Marshal.FreeHGlobal(modifiedPtr); // Clean up
                 return result;
             }
-
-
-
-            return InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, lParam);
+            finally
+            {
+                Interlocked.Decrement(ref _inKbCallback);
+            }
         }
 
-        
+
         private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)InputHookManager.WM_MOUSEMOVE)
+            Interlocked.Increment(ref _inMCallback);
+            try
             {
+                if (nCode < 0)
+                    return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
+
                 MSLLHOOKSTRUCT original = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
                 bool wasInjected = (original.flags & InputHookManager.LLMHF_INJECTED) != 0;
 
                 Console.WriteLine($"Mouse moved to {original.pt.x},{original.pt.y} - Injected: {wasInjected}");
 
                 // Clone and remove the injected flag
+                if (!wasInjected)
+                    return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
+
                 var modified = original;
                 modified.flags &= ~InputHookManager.LLMHF_INJECTED;
 
                 IntPtr fakeLParam = Marshal.AllocHGlobal(Marshal.SizeOf<MSLLHOOKSTRUCT>());
                 Marshal.StructureToPtr(modified, fakeLParam, false);
 
+                Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLMHF_INJECTED) != 0}");
+
                 IntPtr result = InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, fakeLParam);
 
                 Marshal.FreeHGlobal(fakeLParam);
                 return result;
             }
-
-            return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
+            finally
+            {
+                Interlocked.Decrement(ref _inMCallback);
+            }
         }
 
         public async Task StartHookManagementLoop()
@@ -105,7 +134,7 @@ namespace Echo.Services
                     _logger.LogError(ex, $"Error setting hooks");
                 }
 
-                await Task.Delay(60000);// Refresh every minute
+                await Task.Delay(20000);
             }
 
         }

@@ -12,7 +12,7 @@ namespace Echo.Services
         public DiscordBotService()
         {
             _channelId = 685835681725284356;
-            _token = "";
+            _token = "MTE3OTg4MzQ5MzYxMDc2MjM5MQ.GwD-KN.5tyUfDbJjV-GM1VYMpUoy_mxJStQlviwP6rmac";
             _client = new DiscordRestClient();
 
         }

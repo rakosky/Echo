@@ -44,7 +44,7 @@ namespace Echo.Services.GameEventServices
         {
             _logger.LogInformation("handling GM Warp event detected.");
             _soundPlayer.Play();
-            _ = _discordBotService.SendMessageToChannel("!!!GM WARP!!!!");
+            _ = _discordBotService.SendMessageToChannel($"GM WARP at {DateTime.Now}!");
             _inputSender.ReleaseAllPressed();
             await Task.Delay(1500, ct);
             var rng = new Random();

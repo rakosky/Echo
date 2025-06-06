@@ -44,7 +44,7 @@ namespace Echo.Services.GameEventServices
 
             _gameFocusManager.OnFocusChanged += (focused) =>
             {
-                if (focused && !IsRunning && ResumeOnFocus) 
+                if (focused && !IsRunning && ResumeOnFocus)
                 {
                     _logger.LogInformation("Game window focused. Resuming event check loop");
                     Start();
@@ -78,30 +78,32 @@ namespace Echo.Services.GameEventServices
 
         public async Task Stop()
         {
-            if (!IsRunning)
+            try
             {
-                _logger.LogInformation("Event loop is not running");
-                return;
+
+                if (!IsRunning)
+                {
+                    _logger.LogInformation("Event loop is not running");
+                    return;
+                }
+
+                // signal both loops to stop
+                _eventCheckCTS.Cancel();
+                _eventHandlerCTS.Cancel();
+
+                if (_eventLoopTask is not null)
+                {
+                    await _eventLoopTask;
+                }
             }
-
-            // signal both loops to stop
-            _eventCheckCTS.Cancel();
-            _eventHandlerCTS.Cancel();
-
-            if (_currentHandlerTask is not null)
+            finally
             {
-                await _currentHandlerTask;
                 _currentHandlerTask = null;
-            }
-
-            if (_eventLoopTask is not null)
-            {
-                await _eventLoopTask;
                 _eventLoopTask = null;
-            }
+                _eventCheckCTS.Dispose();
+                _eventHandlerCTS.Dispose();
 
-            _eventCheckCTS.Dispose();
-            _eventHandlerCTS.Dispose();
+            }
         }
 
         async Task RunEventLoop()

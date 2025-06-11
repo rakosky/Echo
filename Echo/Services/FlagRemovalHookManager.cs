@@ -6,6 +6,8 @@ namespace Echo.Services
 {
     public class FlagRemovalHookManager
     {
+        public readonly TimeSpan HookLifetime = TimeSpan.FromSeconds(20);
+        
         private KeyboardHook _kbHook;
         private MouseHook _mouseHook;
         private readonly ILogger<FlagRemovalHookManager> _logger;
@@ -59,7 +61,7 @@ namespace Echo.Services
                 var original = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
                 bool wasInjected = (original.flags & InputHookManager.LLKHF_INJECTED) != 0;
 
-                //Console.WriteLine($"KB hook {original.scanCode} - injected: {wasInjected}");
+                //Console.WriteLine($"KB hook Id:{_kbHook.hookID} Key:{original.scanCode} Injected: {wasInjected}");
 
                 if (!wasInjected)
                     return InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, lParam);
@@ -70,9 +72,9 @@ namespace Echo.Services
                 IntPtr modifiedPtr = Marshal.AllocHGlobal(Marshal.SizeOf<KBDLLHOOKSTRUCT>());
                 Marshal.StructureToPtr(modified, modifiedPtr, false);
 
+                //Console.WriteLine($"KB hook Id:{_kbHook.hookID} New injected: {(modified.flags & InputHookManager.LLKHF_INJECTED) != 0}");
                 // Forward modified struct 
                 IntPtr result = InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, modifiedPtr);
-                //Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLKHF_INJECTED) != 0}");
 
                 Marshal.FreeHGlobal(modifiedPtr); // Clean up
                 return result;
@@ -82,7 +84,6 @@ namespace Echo.Services
                 Interlocked.Decrement(ref _inKbCallback);
             }
         }
-
 
         private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -134,7 +135,7 @@ namespace Echo.Services
                     _logger.LogError(ex, $"Error setting hooks");
                 }
 
-                await Task.Delay(20000);
+                await Task.Delay((int)HookLifetime.TotalMilliseconds);
             }
 
         }

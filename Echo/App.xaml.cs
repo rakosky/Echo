@@ -78,16 +78,13 @@ namespace Echo
             services.AddSingleton<DiscordBotService>();
             services.AddSingleton(new SoundPlayer("alarm.wav"));
             
-            services.AddSingleton<FlagRemovalHookManager>();
+            services.AddTransient<FlagRemovalHookManager>();
 
             services.AddSingleton<MainWindowViewModel>();
 
-
-            // Register MainWindow as a singleton (so DI can inject its VM)
             services.AddSingleton<MainWindow>();
             _serviceProvider = services.BuildServiceProvider();
 
-            _ = _serviceProvider.GetRequiredService<FlagRemovalHookManager>().StartHookManagementLoop();
             _ = Task.Run(() => _serviceProvider.GetRequiredService<ScreenshotProvider>().StartScreenCaptureLoop());
             _ = Task.Run(() => _serviceProvider.GetRequiredService<ProcessProvider>().StartProcessCaptureLoop());
             _ = Task.Run(() => _serviceProvider.GetRequiredService<GameFocusManager>().StartFocusCheckLoop());
@@ -95,7 +92,10 @@ namespace Echo
             var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
             mainWindow.Show();
 
-
+            _ = _serviceProvider.GetRequiredService<FlagRemovalHookManager>().StartHookManagementLoop();
+            var delayedFlagRemovalManager = _serviceProvider.GetRequiredService<FlagRemovalHookManager>();
+            await Task.Delay((int)delayedFlagRemovalManager.HookLifetime.TotalMilliseconds / 2);
+            _ = delayedFlagRemovalManager.StartHookManagementLoop();
         }
     }
 

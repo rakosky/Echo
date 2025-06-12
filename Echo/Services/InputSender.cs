@@ -5,11 +5,11 @@ using static Echo.Extern.User32;
 
 namespace Echo.Services
 {
-    public class InputSender
+    public class InputSender_old
     {
         readonly ProcessProvider _processProvider;
 
-        public InputSender(ProcessProvider processProvider)
+        public InputSender_old(ProcessProvider processProvider)
         {
             _processProvider = processProvider;
         }

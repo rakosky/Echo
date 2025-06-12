@@ -51,7 +51,7 @@ namespace Echo
             }
 
 
-            await _mapAnalyzer.UpdateMapBounds();
+            //await _mapAnalyzer.UpdateMapBounds();
 
             _gameFocusManager.SetFocus();
 

@@ -7,7 +7,7 @@ namespace Echo.Services
     {
         readonly ILogger<ProcessProvider> _logger;
 
-        string processName = "maplestory";
+        string processName = "notepad";
 
         Process? _process;
 

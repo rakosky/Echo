@@ -15,6 +15,11 @@ namespace Echo.Services
         private int _inKbCallback = 0;
         private int _inMCallback = 0;
 
+        private static readonly int KBFlagsOffset =
+            Marshal.OffsetOf<KBDLLHOOKSTRUCT>("flags").ToInt32();
+
+        private static readonly int MFlagsOffset =
+            Marshal.OffsetOf<MSLLHOOKSTRUCT>("flags").ToInt32();
 
         public FlagRemovalHookManager(ILogger<FlagRemovalHookManager> logger)
         {
@@ -56,28 +61,18 @@ namespace Echo.Services
             Interlocked.Increment(ref _inKbCallback);
             try
             {
-                if (nCode < 0)
-                    return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
-                var original = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
-                bool wasInjected = (original.flags & InputHookManager.LLKHF_INJECTED) != 0;
+                if (nCode >= 0)
+                {
+                    // Read the current flags from the struct at lParam + offset
+                    int flags = Marshal.ReadInt32(lParam, KBFlagsOffset);
 
-                //Console.WriteLine($"KB hook Id:{_kbHook.hookID} Key:{original.scanCode} Injected: {wasInjected}");
+                    if ((flags & InputHookManager.LLKHF_INJECTED) != 0)
+                    {
+                        Marshal.WriteInt32(lParam, KBFlagsOffset, flags & ~InputHookManager.LLKHF_INJECTED);
+                    }
 
-                if (!wasInjected)
-                    return InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, lParam);
-
-                var modified = original;
-                modified.flags &= ~InputHookManager.LLKHF_INJECTED;
-
-                IntPtr modifiedPtr = Marshal.AllocHGlobal(Marshal.SizeOf<KBDLLHOOKSTRUCT>());
-                Marshal.StructureToPtr(modified, modifiedPtr, false);
-
-                //Console.WriteLine($"KB hook Id:{_kbHook.hookID} New injected: {(modified.flags & InputHookManager.LLKHF_INJECTED) != 0}");
-                // Forward modified struct 
-                IntPtr result = InputHookManager.CallNextHookEx(_kbHook.hookID, nCode, wParam, modifiedPtr);
-
-                Marshal.FreeHGlobal(modifiedPtr); // Clean up
-                return result;
+                }
+                return InputHookManager.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
             }
             finally
             {
@@ -90,29 +85,18 @@ namespace Echo.Services
             Interlocked.Increment(ref _inMCallback);
             try
             {
-                if (nCode < 0)
-                    return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
+                if (nCode >= 0)
+                {
+                    int flags = Marshal.ReadInt32(lParam, MFlagsOffset);
 
-                MSLLHOOKSTRUCT original = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
-                bool wasInjected = (original.flags & InputHookManager.LLMHF_INJECTED) != 0;
+                    if ((flags & InputHookManager.LLMHF_INJECTED) != 0)
+                    {
+                        Marshal.WriteInt32(lParam, MFlagsOffset, flags & ~InputHookManager.LLMHF_INJECTED);
+                    }
 
-                //Console.WriteLine($"Mouse moved to {original.pt.x},{original.pt.y} - Injected: {wasInjected}");
+                }
+                IntPtr result = InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
 
-                // Clone and remove the injected flag
-                if (!wasInjected)
-                    return InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, lParam);
-
-                var modified = original;
-                modified.flags &= ~InputHookManager.LLMHF_INJECTED;
-
-                IntPtr fakeLParam = Marshal.AllocHGlobal(Marshal.SizeOf<MSLLHOOKSTRUCT>());
-                Marshal.StructureToPtr(modified, fakeLParam, false);
-
-                //Console.WriteLine($"new injected: {(modified.flags & InputHookManager.LLMHF_INJECTED) != 0}");
-
-                IntPtr result = InputHookManager.CallNextHookEx(_mouseHook.hookID, nCode, wParam, fakeLParam);
-
-                Marshal.FreeHGlobal(fakeLParam);
                 return result;
             }
             finally

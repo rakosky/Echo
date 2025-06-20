@@ -61,10 +61,12 @@ namespace Echo.Services
             // Exit on F12
             if (scanCode == ScanCodeShort.F12)
             {
+                // unhook so future keys don't come back here
                 InputHookManager.UnhookWindowsHookEx(_hook.hookID);
                 _hook.hookID = IntPtr.Zero;
-                return IntPtr.Zero;
+                return InputHookManager.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
             }
+
             var now = TimeGetTime();
             long elapsed = now - _timeHolder;
             _timeHolder = now;

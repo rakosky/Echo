@@ -28,6 +28,7 @@ namespace Echo.Services.GameEventServices
 
         public async Task HandleEvent(CancellationToken ct)
         {
+            _runeAnalyzer.CurrentRuneAttempts = 0;
             var nTries = 0;
             var firstTry = true;
             do
@@ -59,7 +60,6 @@ namespace Echo.Services.GameEventServices
 
             await Task.Delay(3000, ct);
 
-            _runeAnalyzer.CurrentRuneAttempts = 0;
             _logger.LogInformation($"Channel reset @ {DateTime.Now}.");
         }
 

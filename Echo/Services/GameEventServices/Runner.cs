@@ -126,6 +126,7 @@ namespace Echo.Services.GameEventServices
                         continue;
                     }
 
+
                     await CheckForAndStopCurrentEvent();
 
                     _orcamPlayer.Stop();

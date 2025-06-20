@@ -10,7 +10,7 @@ namespace Echo.Services
     {
         private ScanCodeShort MENU_KEY = ScanCodeShort.ESCAPE;
         private ScanCodeShort ATTACK_KEY = ScanCodeShort.LCONTROL;
-        private ScanCodeShort ROPE_LIFT_KEY = ScanCodeShort.KEY_H;
+        private ScanCodeShort ROPE_LIFT_KEY = ScanCodeShort.SPACE;
         private ScanCodeShort JUMP_KEY = ScanCodeShort.LMENU;
         private ScanCodeShort NPC_CHAT_KEY = ScanCodeShort.KEY_Y;
         private ScanCodeShort MAP_KEY = ScanCodeShort.KEY_M;

@@ -39,7 +39,6 @@ namespace Echo.Services
 
         public async Task<PixelSnapshot> GetLatestPixels()
         {
-            // keep other threads out while we touch the live bitmap
             await _captureLock.WaitForReadLockReleaseAsync();
 
             int bytes = Math.Abs(_imageBits.Stride) * _imageBits.Height;
@@ -70,7 +69,8 @@ namespace Echo.Services
                         continue;
                     }
 
-                    newImage = CaptureWindowInternal(gameProc.MainWindowHandle);
+                    newImage = CaptureWithPrintWindow(gameProc.MainWindowHandle);
+                    //newImage = CaptureWindowInternal(gameProc.MainWindowHandle);
                     newImageBits = newImage.LockBits(
                         new Rectangle(0, 0, newImage.Width, newImage.Height),
                         ImageLockMode.ReadOnly,
@@ -157,6 +157,35 @@ namespace Echo.Services
             bmp.Save(filePath, format);
         }
 
+        private const uint PW_RENDERFULLCONTENT = 0x00000002;
+
+        [DllImport("user32.dll")]
+        static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct RECT { public int left, top, right, bottom; }
+
+        public static Bitmap CaptureWithPrintWindow(IntPtr hwnd)
+        {
+            if (!GetWindowRect(hwnd, out var r))
+                throw new System.ComponentModel.Win32Exception();
+
+            int w = r.right - r.left, h = r.bottom - r.top;
+            var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+
+            using (var g = Graphics.FromImage(bmp))
+            {
+                IntPtr hdc = g.GetHdc();
+                // try full‐content flag
+                PrintWindow(hwnd, hdc, PW_RENDERFULLCONTENT);
+                g.ReleaseHdc(hdc);
+            }
+
+            return bmp;
+        }
 
         private Bitmap CaptureWindowInternal(nint handle)
         {

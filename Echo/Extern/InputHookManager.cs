@@ -6,14 +6,14 @@ namespace Echo.Extern
 {
     public static class InputHookManager
     {
-        public const uint LLKHF_INJECTED = 0x10;
+        public const int LLKHF_INJECTED = 0x10;
         public const int WH_KEYBOARD_LL = 13;
         public const int WM_KEYDOWN = 0x0100;
         public const int WM_KEYUP = 0x0101;
 
         public const int WH_MOUSE_LL = 14;
         public const int WM_MOUSEMOVE = 0x0200;
-        public const uint LLMHF_INJECTED = 0x00000001;
+        public const int LLMHF_INJECTED = 0x00000001;
 
         public static KeyboardHook CreateKeyboardHook(LowLevelInputProc proc)
         {

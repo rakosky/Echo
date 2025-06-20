@@ -1,5 +1,6 @@
 ﻿using Echo.Models;
 using Microsoft.Extensions.Logging;
+using static Echo.Extern.User32;
 
 namespace Echo.Services
 {
@@ -11,6 +12,9 @@ namespace Echo.Services
         readonly ILogger<OrcamPlayer> _logger;
         readonly InputSender _inputSender;
         readonly GameFocusManager _gameFocusManager;
+        const int MaxDelayVarianceMs = 10;
+        readonly ScanCodeShort[] InjectableKeys = [ScanCodeShort.OEM_COMMA, ScanCodeShort.KEY_Z, ScanCodeShort.KEY_U, ScanCodeShort.DELETE];
+        const double InjectionChance = .01; // one in every 100 commands will inject a key
 
         public bool IsPlaying { get; private set; } = false;
 
@@ -111,10 +115,36 @@ namespace Echo.Services
                     _enumerator.Reset();
                     _enumerator.MoveNext();
                 }
+
+                var random = Random.Shared.NextDouble();
                 var command = _enumerator.Current;
-                await Task.Delay(command.Delay, _playbackCT);
+                
+                if (command.Delay > 30)
+                {
+                    var dir = Random.Shared.NextDouble() > .5 ? 1 : -1;
+                    await Task.Delay(command.Delay + (int)(random * MaxDelayVarianceMs * dir), _playbackCT);
+                }
+                else
+                {
+                    await Task.Delay(command.Delay, _playbackCT);
+                }
+                
                 _inputSender.SendKey(command.Key, command.Type);
+
+                if (random <= InjectionChance)
+                    await HandleRandomKeyInjection();
             }
+        }
+
+        private async Task HandleRandomKeyInjection()
+        {
+            var key = InjectableKeys[Random.Shared.Next(InjectableKeys.Length - 1)];
+
+            await Task.Delay(MaxDelayVarianceMs + (int)(Random.Shared.NextDouble() * MaxDelayVarianceMs), _playbackCT);
+            _inputSender.SendKey(key, KeyPressType.DOWN);
+            await Task.Delay(MaxDelayVarianceMs + (int)(Random.Shared.NextDouble() * MaxDelayVarianceMs), _playbackCT);
+            _inputSender.SendKey(key, KeyPressType.UP);
+
         }
     }
 }

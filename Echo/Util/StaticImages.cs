@@ -12,6 +12,9 @@ namespace Echo.Util
 
         public static readonly Bitmap RespawnImg;
 
+        public static readonly Bitmap LotdIcon;
+        public static readonly Bitmap LotdCDIcon;
+
         static StaticImages()
         {
             try
@@ -23,6 +26,10 @@ namespace Echo.Util
                 MapImageBottomRight = (Bitmap)Image.FromFile(@"imgs/minimap_br.png");
 
                 RespawnImg = (Bitmap)Image.FromFile(@"imgs/respawnok.png");
+
+
+                LotdIcon = (Bitmap)Image.FromFile(@"imgs/lordofthedeep.png");
+                LotdCDIcon = (Bitmap)Image.FromFile(@"imgs/lordofthedeepcooldown.png");
             }
             catch (Exception ex)
             {

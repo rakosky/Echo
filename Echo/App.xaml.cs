@@ -61,12 +61,14 @@ namespace Echo
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<GmMapEventHandler>());
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<WrongMapGameEventHandler>());
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<RuneFailEventHandler>());
+            services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<BuffRefresher>());
 
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<RuneDetectedEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<PlayerDiedEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<GmMapEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<WrongMapGameEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<RuneFailEventHandler>());
+            services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<BuffRefresher>());
 
             services.AddSingleton<OrcamRecorder>();
 

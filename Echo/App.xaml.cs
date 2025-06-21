@@ -55,6 +55,7 @@ namespace Echo
             services.AddSingleton<GmMapEventHandler>();
             services.AddSingleton<WrongMapGameEventHandler>();
             services.AddSingleton<RuneFailEventHandler>();
+            services.AddSingleton<BuffRefresher>();
 
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<RuneDetectedEventHandler>());
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<PlayerDiedEventHandler>()); 

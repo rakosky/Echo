@@ -11,9 +11,10 @@ namespace Echo.Services.GameEventServices
 
         public GameEventType EventType => GameEventType.BuffRefresh;
 
-        public BuffRefresher(ScreenshotProvider screenshotProvider)
+        public BuffRefresher(ScreenshotProvider screenshotProvider, InputSender inputSender)
         {
             _screenshotProvider = screenshotProvider;
+            _inputSender = inputSender;
         }
 
         public async Task<GameEventType> EventDetected(PixelSnapshot pixelSnapshot)

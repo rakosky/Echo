@@ -22,9 +22,9 @@ namespace Echo.Services.ImageAnalysis
             var directions = new List<(string, Point)>();
             List<Point> valid_gradient = new();
 
-            using (var croppedImg = fullImg.Clone(new Rectangle(640, 300, 570, 150), System.Drawing.Imaging.PixelFormat.Format32bppRgb))
+            using (var croppedImg = fullImg.Clone(new Rectangle(630, 260, 570, 210), System.Drawing.Imaging.PixelFormat.Format32bppRgb))
             {
-                //croppedImg. Save($@"{AppDomain.CurrentDomain.BaseDirectory}screenshots\{DateTime.Now.Ticks}.png");
+                croppedImg. Save($@"{AppDomain.CurrentDomain.BaseDirectory}screenshots\{DateTime.Now.Ticks}.png");
 
                 HSV[,] _hsvMap = new HSV[croppedImg.Width, croppedImg.Height];
 

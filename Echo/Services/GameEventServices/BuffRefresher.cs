@@ -21,7 +21,7 @@ namespace Echo.Services.GameEventServices
         {
             // Check if the buff refresh image is present in the screenshot
             var gameImage = await _screenshotProvider.GetLatestPixels();
-            return ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdIcon, .40) == Rectangle.Empty && ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdCDIcon, .1) != Rectangle.Empty
+            return ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdIcon, .30) == Rectangle.Empty && ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdCDIcon, .1) != Rectangle.Empty
                 ? GameEventType.BuffRefresh
                 : GameEventType.None;
         }

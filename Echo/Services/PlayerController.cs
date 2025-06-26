@@ -202,6 +202,9 @@ namespace Echo.Services
                         else if (y1 - y2 > 5)
                         {
                             //up jump
+                            _inputSender.ReleaseAllPressed();
+                            await Task.Delay(78, ct);
+
                             _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
                             await Task.Delay(78, ct);
                             _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);

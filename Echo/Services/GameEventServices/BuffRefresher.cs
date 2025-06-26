@@ -11,6 +11,8 @@ namespace Echo.Services.GameEventServices
 
         public GameEventType EventType => GameEventType.BuffRefresh;
 
+        Rectangle buffBarBounds;
+
         public BuffRefresher(ScreenshotProvider screenshotProvider, InputSender inputSender)
         {
             _screenshotProvider = screenshotProvider;
@@ -19,18 +21,23 @@ namespace Echo.Services.GameEventServices
 
         public async Task<GameEventType> EventDetected(PixelSnapshot pixelSnapshot)
         {
-            // Check if the buff refresh image is present in the screenshot
             var gameImage = await _screenshotProvider.GetLatestPixels();
-            return ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdIcon, .30) == Rectangle.Empty && ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdCDIcon, .1) != Rectangle.Empty
-                ? GameEventType.BuffRefresh
-                : GameEventType.None;
+
+            if (buffBarBounds == default)
+                buffBarBounds = new Rectangle(0, 0, gameImage.Width, 300);
+
+            return ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdIcon, .45, buffBarBounds) == Rectangle.Empty
+                && ImageFunctions.FindSubImageCoords(gameImage, StaticImages.LotdCDIcon, .1) != Rectangle.Empty
+                    ? GameEventType.BuffRefresh
+                    : GameEventType.None;
         }
 
         public async Task HandleEvent(CancellationToken ct)
         {
-            await Task.Delay(1000, ct);
+            await Task.Delay(200, ct);
             _inputSender.SendKey(Extern.User32.ScanCodeShort.KEY_L, KeyPressType.PRESS);
-            await Task.Delay(400, ct);
+            await Task.Delay(1300, ct);
+
         }
     }
 }

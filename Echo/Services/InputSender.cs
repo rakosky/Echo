@@ -14,17 +14,35 @@ namespace Echo.Services
             _processProvider = processProvider;
         }
 
-        public void ReleaseAllPressed()
+        public HashSet<byte> ReleaseAllPressed()
         {
+            HashSet<byte> released = new();
             // Determine currently pressed keys and release them
             for (int i = 0; i < 256; i++)
             {
                 if ((GetAsyncKeyState(i) & 0x8000) != 0)
                 {
-                    keybd_event((byte)i, 0, 0x0002, 0);
+                    var k = (byte)i;
+                    released.Add(k);
+                    keybd_event(k, 0, 0x0002, 0);
                 }
             }
+
+            return released;
         }
+
+        byte[] _arrowKeys = [0x25, 0x26, 0x27, 0x28];
+        public void RepressAll(HashSet<byte> released)
+        {
+            foreach (var k in released)
+            {
+                if (!_arrowKeys.Contains(k))
+                    continue;
+
+                keybd_event(k, 0, 0x0001, 0);
+            }
+        }
+
         public void SendKey(ScanCodeShort scanCode, KeyPressType type = KeyPressType.PRESS)
         {
             // helper to build a single INPUT in one line

@@ -16,6 +16,9 @@ namespace Echo.Services
         readonly ScanCodeShort[] InjectableKeys = [ScanCodeShort.OEM_COMMA, ScanCodeShort.KEY_Z, ScanCodeShort.KEY_U, ScanCodeShort.DELETE];
         const double InjectionChance = .01; // one in every 100 commands will inject a key
 
+
+        HashSet<byte> _releasedKeys = new HashSet<byte>();
+
         public bool IsPlaying { get; private set; } = false;
 
         public bool StoppedByFocusLoss { get; set; }
@@ -94,7 +97,7 @@ namespace Echo.Services
             }
 
             _logger.LogInformation("Stopping playback");
-            _inputSender.ReleaseAllPressed();
+            _releasedKeys = _inputSender.ReleaseAllPressed();
             IsPlaying = false;
             _playbackCTS.Cancel();
         }
@@ -107,7 +110,11 @@ namespace Echo.Services
             _playbackCTS = new CancellationTokenSource();
             _playbackCT = _playbackCTS.Token;
             IsPlaying = true;
-            
+
+            // repress all release arrow keys if applicible
+            if (_releasedKeys is not null && _releasedKeys.Count > 0)
+                _inputSender.RepressAll(_releasedKeys);
+
             while (!_playbackCT.IsCancellationRequested)
             {
                 if (!_enumerator.MoveNext())

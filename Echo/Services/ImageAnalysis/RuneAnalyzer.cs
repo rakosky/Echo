@@ -22,7 +22,7 @@ namespace Echo.Services.ImageAnalysis
             var directions = new List<(string, Point)>();
             List<Point> valid_gradient = new();
 
-            using (var croppedImg = fullImg.Clone(new Rectangle(630, 260, 570, 210), System.Drawing.Imaging.PixelFormat.Format32bppRgb))
+            using (var croppedImg = fullImg.Clone(new Rectangle(630, 280, 570, 200), System.Drawing.Imaging.PixelFormat.Format32bppRgb))
             {
                 croppedImg. Save($@"{AppDomain.CurrentDomain.BaseDirectory}screenshots\{DateTime.Now.Ticks}.png");
 

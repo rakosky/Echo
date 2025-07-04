@@ -87,7 +87,7 @@ namespace Echo.Services.GameEventServices
                 _logger.LogError(logMessage);
                 _runeAnalyzer.CurrentRuneAttempts++;
                 // Spicy lil attack to clear potential floating mob if we are failing runes?
-                _inputSender.SendKey(ScanCodeShort.F1);
+                _inputSender.SendKey(_hotkeys.AttackKey);
             }
 
             await Task.Delay(1000, ct);

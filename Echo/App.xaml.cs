@@ -56,7 +56,6 @@ namespace Echo
 
             var settings = JsonSerializer.Deserialize<Settings>(json, options);
 
-
             services.AddSingleton(settings);
 
             services.AddSingleton<Runner>();

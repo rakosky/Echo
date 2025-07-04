@@ -31,7 +31,6 @@ namespace Echo.Services
             _screenshotProvider = screenshotProvider;
             _gameAnalyzer = gameAnalyzer;
             _mapAnalyzer = mapAnalyzer;
-
         }
 
         public async Task TeleToMacroMap(Bitmap mapImg, CancellationToken ct)

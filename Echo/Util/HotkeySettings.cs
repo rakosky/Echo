@@ -10,5 +10,6 @@ namespace Echo.Services
         public ScanCodeShort MenuKey { get; set; }
         public ScanCodeShort AttackKey { get; set; }
         public ScanCodeShort MapKey { get; set; }
+        
     }
 }

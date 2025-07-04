@@ -6,6 +6,12 @@
     "MenuKey": "ESCAPE",
     "AttackKey": "F1",
     "MapKey": "KEY_M"
-  }
-  
+  },
+  "InjectableKeys": [
+    "OEM_COMMA",
+    "KEY_B",
+    "KEY_H",
+    "END"
+  ]
+
 }

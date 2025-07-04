@@ -4,10 +4,13 @@ using Echo.Services.ImageAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Configuration;
 using System.Data;
 using System.Media;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Navigation;
 
@@ -42,6 +45,18 @@ namespace Echo
                     .AddConsole()
                     .SetMinimumLevel(LogLevel.Information);
             });
+
+            var json = File.ReadAllText("Settings.json");
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
+
+            var settings = JsonSerializer.Deserialize<Settings>(json, options);
+
+            services.AddSingleton(settings);
 
             services.AddSingleton<Runner>();
             services.AddSingleton<OrcamPlayer>();

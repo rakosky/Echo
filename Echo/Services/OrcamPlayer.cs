@@ -12,10 +12,10 @@ namespace Echo.Services
         readonly ILogger<OrcamPlayer> _logger;
         readonly InputSender _inputSender;
         readonly GameFocusManager _gameFocusManager;
+        readonly Settings _settings;
         const int MaxDelayVarianceMs = 10;
-        readonly ScanCodeShort[] InjectableKeys = [ScanCodeShort.OEM_COMMA, ScanCodeShort.KEY_Z, ScanCodeShort.KEY_U, ScanCodeShort.DELETE];
-        const double InjectionChance = .01; // one in every 100 commands will inject a key
 
+        const double InjectionChance = .01; // one in every 100 commands will inject a key
 
         HashSet<byte> _releasedKeys = new HashSet<byte>();
 
@@ -28,10 +28,12 @@ namespace Echo.Services
         public OrcamPlayer(
             ILogger<OrcamPlayer> logger,
             InputSender inputSender,
+            Settings settings,
             GameFocusManager gameFocusManager)
         {
             _logger = logger;
             _inputSender = inputSender;
+            _settings = settings;
             _gameFocusManager = gameFocusManager;
 
             _gameFocusManager.OnFocusChanged += HandleFocusChange;
@@ -56,7 +58,6 @@ namespace Echo.Services
                 _logger.LogWarning("Ocram is already playing");
                 return;
             }
-
 
             _ = Task.Run(PlayInternal);
         }
@@ -145,7 +146,7 @@ namespace Echo.Services
 
         private async Task HandleRandomKeyInjection()
         {
-            var key = InjectableKeys[Random.Shared.Next(InjectableKeys.Length - 1)];
+            var key = _settings.InjectableKeys[Random.Shared.Next(_settings.InjectableKeys.Length - 1)];
 
             await Task.Delay(MaxDelayVarianceMs + (int)(Random.Shared.NextDouble() * MaxDelayVarianceMs), _playbackCT);
             _inputSender.SendKey(key, KeyPressType.DOWN);

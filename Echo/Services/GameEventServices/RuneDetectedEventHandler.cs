@@ -1,6 +1,5 @@
 ﻿using Echo.Models;
 using Echo.Services.ImageAnalysis;
-using Echo.Util;
 using Microsoft.Extensions.Logging;
 using System.Drawing;
 using static Echo.Extern.User32;
@@ -13,6 +12,7 @@ namespace Echo.Services.GameEventServices
         MapAnalyzer _mapAnalyzer;
         PlayerController _playerController;
         InputSender _inputSender;
+        HotkeySettings _hotkeys;
         ILogger<RuneDetectedEventHandler> _logger;
 
         Point? _activeRuneLoc = null;
@@ -22,6 +22,7 @@ namespace Echo.Services.GameEventServices
         public RuneDetectedEventHandler(
             RuneAnalyzer runeAnalyzer,
             MapAnalyzer mapAnalyzer,
+            Settings settings,
             PlayerController playerController,
             InputSender inputSender,
             ILogger<RuneDetectedEventHandler> logger)
@@ -29,8 +30,10 @@ namespace Echo.Services.GameEventServices
             _runeAnalyzer = runeAnalyzer;
             _mapAnalyzer = mapAnalyzer;
             _playerController = playerController;
+            _hotkeys = settings.Hotkeys;
             _inputSender = inputSender;
             _logger = logger;
+
         }
 
         public GameEventType EventType => GameEventType.Rune;
@@ -43,7 +46,6 @@ namespace Echo.Services.GameEventServices
                 return GameEventType.Rune;
             }
 
-
             return GameEventType.None;
         }
 
@@ -54,7 +56,7 @@ namespace Echo.Services.GameEventServices
             await _playerController.GoTo(_activeRuneLoc!.Value, ct);
             _logger.LogInformation("Arrived at rune");
             await Task.Delay(200, ct);
-            _inputSender.SendKey(CommonHotkeys.NPC_CHAT_KEY);
+            _inputSender.SendKey(_hotkeys.NpcChatKey);
             await Task.Delay(2000, ct);
 
             var dirs = await _runeAnalyzer.FindArrowDirections(ct);
@@ -85,7 +87,7 @@ namespace Echo.Services.GameEventServices
                 _logger.LogError(logMessage);
                 _runeAnalyzer.CurrentRuneAttempts++;
                 // Spicy lil attack to clear potential floating mob if we are failing runes?
-                _inputSender.SendKey(ScanCodeShort.LCONTROL);
+                _inputSender.SendKey(_hotkeys.AttackKey);
             }
 
             await Task.Delay(1000, ct);

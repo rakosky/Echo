@@ -8,14 +8,8 @@ namespace Echo.Services
 {
     public class PlayerController
     {
-        private ScanCodeShort MENU_KEY = ScanCodeShort.ESCAPE;
-        private ScanCodeShort ATTACK_KEY = ScanCodeShort.LCONTROL;
-        private ScanCodeShort ROPE_LIFT_KEY = ScanCodeShort.SPACE;
-        private ScanCodeShort JUMP_KEY = ScanCodeShort.LMENU;
-        private ScanCodeShort NPC_CHAT_KEY = ScanCodeShort.KEY_Y;
-        private ScanCodeShort MAP_KEY = ScanCodeShort.KEY_M;
-
         readonly ILogger<PlayerController> _logger;
+        readonly HotkeySettings _hotkeys;
         readonly InputSender _inputSender;
         readonly ScreenshotProvider _screenshotProvider;
         readonly GameAnalyzer _gameAnalyzer;
@@ -25,23 +19,26 @@ namespace Echo.Services
 
         public PlayerController(
             ILogger<PlayerController> logger,
+            Settings settings,
             InputSender inputSender,
             ScreenshotProvider screenshotProvider,
             GameAnalyzer gameAnalyzer,
             MapAnalyzer mapAnalyzer)
         {
             _logger = logger;
+            _hotkeys = settings.Hotkeys;
             _inputSender = inputSender;
             _screenshotProvider = screenshotProvider;
             _gameAnalyzer = gameAnalyzer;
             _mapAnalyzer = mapAnalyzer;
+
         }
 
         public async Task TeleToMacroMap(Bitmap mapImg, CancellationToken ct)
         {
             _inputSender.ReleaseAllPressed();
             await Task.Delay(1000, ct);
-            _inputSender.SendKey(MAP_KEY);
+            _inputSender.SendKey(_hotkeys.MapKey);
             await Task.Delay(2000, ct);
 
             var imageData = await _screenshotProvider.GetLatestPixels();
@@ -79,7 +76,7 @@ namespace Echo.Services
             if (preWaitForBreath)
                 await Task.Delay(_gainBreathDelay, ct);
 
-            _inputSender.SendKey(MENU_KEY);
+            _inputSender.SendKey(_hotkeys.MenuKey);
             await Task.Delay(keystrokeDelay, ct);
             if (goUpCh) _inputSender.SendKey(ScanCodeShort.RIGHT);
             else _inputSender.SendKey(ScanCodeShort.LEFT);
@@ -103,7 +100,7 @@ namespace Echo.Services
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    _inputSender.SendKey(ATTACK_KEY);
+                    _inputSender.SendKey(_hotkeys.AttackKey);
                     await Task.Delay(500, ct);
                 }
                 await Task.Delay(_gainBreathDelay, ct);
@@ -155,8 +152,8 @@ namespace Echo.Services
                     }
                     if (Math.Abs(x2 - x1) > 30)
                     {
-                        _inputSender.SendKey(JUMP_KEY);
-                        _inputSender.SendKey(JUMP_KEY);
+                        _inputSender.SendKey(_hotkeys.JumpKey);
+                        _inputSender.SendKey(_hotkeys.JumpKey);
                     }
                 }
 
@@ -175,7 +172,7 @@ namespace Echo.Services
                     else if (y1 < y2)
                     {
                         _inputSender.SendKey(ScanCodeShort.DOWN, KeyPressType.DOWN);
-                        _inputSender.SendKey(JUMP_KEY);
+                        _inputSender.SendKey(_hotkeys.JumpKey);
                     }
                     // Player is below target y-position.
                     else
@@ -185,19 +182,19 @@ namespace Echo.Services
                             //up jump into rope lift
                             _inputSender.ReleaseAllPressed();
 
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.DOWN);
                             await Task.Delay(78, ct);
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.UP);
                             await Task.Delay(38, ct);
                             _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.DOWN);
                             await Task.Delay(61, ct);
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.DOWN);
                             await Task.Delay(136, ct);
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.UP);
                             await Task.Delay(27, ct);
                             _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.UP);
 
-                            _inputSender.SendKey(ROPE_LIFT_KEY);
+                            _inputSender.SendKey(_hotkeys.RopeLiftKey);
                         }
                         else if (y1 - y2 > 5)
                         {
@@ -205,15 +202,15 @@ namespace Echo.Services
                             _inputSender.ReleaseAllPressed();
                             await Task.Delay(78, ct);
 
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.DOWN);
                             await Task.Delay(78, ct);
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.UP);
                             await Task.Delay(38, ct);
                             _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.DOWN);
                             await Task.Delay(61, ct);
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.DOWN);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.DOWN);
                             await Task.Delay(136, ct);
-                            _inputSender.SendKey(ScanCodeShort.RMENU, KeyPressType.UP);
+                            _inputSender.SendKey(_hotkeys.JumpKey, KeyPressType.UP);
                             await Task.Delay(27, ct);
                             _inputSender.SendKey(ScanCodeShort.UP, KeyPressType.UP);
                         }
@@ -221,7 +218,7 @@ namespace Echo.Services
                         {
                             // simple jump
                             _inputSender.SendKey(ScanCodeShort.UP);
-                            _inputSender.SendKey(JUMP_KEY);
+                            _inputSender.SendKey(_hotkeys.JumpKey);
                         }
                     }
                     // Delay for player falling down or jumping up.
@@ -236,7 +233,7 @@ namespace Echo.Services
                     {
                         _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.DOWN);
                         await Task.Delay(30, ct);
-                        _inputSender.SendKey(JUMP_KEY);
+                        _inputSender.SendKey(_hotkeys.JumpKey);
                         await Task.Delay(30, ct);
                         _inputSender.SendKey(ScanCodeShort.RIGHT, KeyPressType.UP);
                     }

@@ -13,7 +13,7 @@ namespace Echo.Services
         readonly InputSender _inputSender;
         readonly GameFocusManager _gameFocusManager;
         const int MaxDelayVarianceMs = 10;
-        readonly ScanCodeShort[] InjectableKeys = [ScanCodeShort.OEM_COMMA, ScanCodeShort.KEY_Z, ScanCodeShort.KEY_U, ScanCodeShort.DELETE];
+        readonly ScanCodeShort[] InjectableKeys = [ScanCodeShort.OEM_COMMA, ScanCodeShort.KEY_B, ScanCodeShort.KEY_H, ScanCodeShort.END];
         const double InjectionChance = .01; // one in every 100 commands will inject a key
 
 

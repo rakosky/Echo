@@ -1,10 +1,10 @@
 {
   "Hotkeys": {
-    "JumpKey": "SPACE",
-    "RopeLiftKey": "KEY_X",
+    "JumpKey": "LMENU",
+    "RopeLiftKey": "SPACE",
     "NpcChatKey": "KEY_Y",
     "MenuKey": "ESCAPE",
-    "AttackKey": "F1",
+    "AttackKey": "CONTROL",
     "MapKey": "KEY_M"
   },
   "InjectableKeys": [
@@ -13,5 +13,4 @@
     "KEY_H",
     "END"
   ]
-
 }

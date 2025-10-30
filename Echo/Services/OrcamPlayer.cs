@@ -1,4 +1,5 @@
 ﻿using Echo.Models;
+using Echo.Models.Settings;
 using Microsoft.Extensions.Logging;
 using static Echo.Extern.User32;
 
@@ -12,7 +13,7 @@ namespace Echo.Services
         readonly ILogger<OrcamPlayer> _logger;
         readonly InputSender _inputSender;
         readonly GameFocusManager _gameFocusManager;
-        readonly Settings _settings;
+        readonly AppSettings _settings;
         const int MaxDelayVarianceMs = 10;
 
         const double InjectionChance = .01; // one in every 100 commands will inject a key
@@ -28,7 +29,7 @@ namespace Echo.Services
         public OrcamPlayer(
             ILogger<OrcamPlayer> logger,
             InputSender inputSender,
-            Settings settings,
+            AppSettings settings,
             GameFocusManager gameFocusManager)
         {
             _logger = logger;

@@ -13,6 +13,7 @@ namespace Echo.Services.GameEventServices
         OrcamPlayer _orcamPlayer;
         ScreenshotProvider _screenshotProvider;
         GameFocusManager _gameFocusManager;
+        InputSender _inputSender;
 
         CancellationTokenSource _eventCheckCTS;
         CancellationToken _eventCheckCT;
@@ -33,7 +34,8 @@ namespace Echo.Services.GameEventServices
             IEnumerable<IGameEventChecker> gameEventCheckers,
             OrcamPlayer orcamPlayer,
             ScreenshotProvider screenshotProvider,
-            GameFocusManager gameFocusManager)
+            GameFocusManager gameFocusManager,
+            InputSender inputSender)
         {
             _logger = logger;
             _gameEventHandlers = gameEventHandlers.ToList();
@@ -41,6 +43,7 @@ namespace Echo.Services.GameEventServices
             _orcamPlayer = orcamPlayer;
             _screenshotProvider = screenshotProvider;
             _gameFocusManager = gameFocusManager;
+            _inputSender = inputSender;
 
             _gameFocusManager.OnFocusChanged += (focused) =>
             {
@@ -134,12 +137,12 @@ namespace Echo.Services.GameEventServices
                     _logger.LogInformation($"Starting new handler for event {priorityEvent}");
 
                     _currentHandlerTask = StartEventHandlerAsync(priorityEvent, _eventHandlerCT);
+                    await Task.Delay(1000, _eventCheckCT);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error running event loop: {Message}", ex.Message);
                 }
-                await Task.Delay(1000, _eventCheckCT);
             }
             _logger.LogInformation("Finished event check loop...");
         }
@@ -168,6 +171,8 @@ namespace Echo.Services.GameEventServices
             if (_currentHandlerTask != null && !_currentHandlerTask.IsCompleted)
             {
                 _eventHandlerCTS.Cancel();
+                var completed = await Task.WhenAny(_currentHandlerTask, Task.Delay(5000));
+                if (completed != _currentHandlerTask) _logger.LogWarning("Handler did not exit in time after cancel.");
                 try
                 {
                     await _currentHandlerTask;
@@ -202,7 +207,7 @@ namespace Echo.Services.GameEventServices
             catch (TaskCanceledException tcEx)
             {
                 _logger.LogInformation($"Handler for event {e} gracefully cancelled");
-
+                _inputSender.ReleaseAllPressed();
             }
             catch (Exception ex)
             {

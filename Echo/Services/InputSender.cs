@@ -31,7 +31,7 @@ namespace Echo.Services
             return released;
         }
 
-        byte[] _arrowKeys = [0x25, 0x26, 0x27, 0x28];
+        byte[] _arrowKeys = [0x25, /*0x26,*/ 0x27, /*0x28*/];
         public void RepressAll(HashSet<byte> released)
         {
             foreach (var k in released)

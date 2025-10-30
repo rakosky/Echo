@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Navigation;
+using Echo.Models.Settings;
 
 namespace Echo
 {
@@ -54,7 +55,7 @@ namespace Echo
                 Converters = { new JsonStringEnumConverter() }
             };
 
-            var settings = JsonSerializer.Deserialize<Settings>(json, options);
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
 
             services.AddSingleton(settings);
 

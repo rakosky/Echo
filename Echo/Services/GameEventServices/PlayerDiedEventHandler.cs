@@ -40,7 +40,8 @@ namespace Echo.Services.GameEventServices
         public async Task HandleEvent(CancellationToken ct)
         {
             // NOTE: applying an offset here because the way we take screenshots now means the extra space above messes up the absolute coordinates of the game
-            var pointToClick = new Point(_lastRespawnBoxCoords.Value.X, _lastRespawnBoxCoords.Value.Y - 0);
+            int yOffset = -40;
+            var pointToClick = new Point(_lastRespawnBoxCoords.Value.X, _lastRespawnBoxCoords.Value.Y + yOffset);
             await Task.Delay(1000, ct);
             _inputSender.ClickOnPoint(pointToClick);
             await Task.Delay(1000, ct);

@@ -1,4 +1,5 @@
 ﻿using Echo.Models;
+using Echo.Models.Settings;
 using Echo.Services.ImageAnalysis;
 using Microsoft.Extensions.Logging;
 using System.Drawing;
@@ -22,7 +23,7 @@ namespace Echo.Services.GameEventServices
         public RuneDetectedEventHandler(
             RuneAnalyzer runeAnalyzer,
             MapAnalyzer mapAnalyzer,
-            Settings settings,
+            AppSettings settings,
             PlayerController playerController,
             InputSender inputSender,
             ILogger<RuneDetectedEventHandler> logger)

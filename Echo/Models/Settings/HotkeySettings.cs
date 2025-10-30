@@ -1,6 +1,6 @@
 ﻿using static Echo.Extern.User32;
 
-namespace Echo.Services
+namespace Echo.Models.Settings
 {
     public class HotkeySettings
     {

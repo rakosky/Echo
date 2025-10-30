@@ -1,4 +1,5 @@
-﻿using Echo.Services.ImageAnalysis;
+﻿using Echo.Models.Settings;
+using Echo.Services.ImageAnalysis;
 using Echo.Util;
 using Microsoft.Extensions.Logging;
 using System.Drawing;
@@ -19,7 +20,7 @@ namespace Echo.Services
 
         public PlayerController(
             ILogger<PlayerController> logger,
-            Settings settings,
+            AppSettings settings,
             InputSender inputSender,
             ScreenshotProvider screenshotProvider,
             GameAnalyzer gameAnalyzer,

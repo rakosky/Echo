@@ -1,20 +1,18 @@
 ﻿using Discord;
 using Discord.Rest;
+using Echo.Models.Settings;
 
 namespace Echo.Services
 {
     public class DiscordBotService
     {
-        private readonly ulong _channelId;
-        private readonly string _token;
         private readonly DiscordRestClient _client;
+        private readonly AppSettings _appSettings;
 
-        public DiscordBotService()
+        public DiscordBotService(AppSettings appSettings)
         {
-            _channelId = 685835681725284356;
-            _token = "MTE3OTg4MzQ5MzYxMDc2MjM5MQ.GwD-KN.5tyUfDbJjV-GM1VYMpUoy_mxJStQlviwP6rmac";
             _client = new DiscordRestClient();
-
+            _appSettings = appSettings;
         }
 
 
@@ -24,10 +22,10 @@ namespace Echo.Services
             {
                 if (_client.LoginState != LoginState.LoggedIn)
                 {
-                    await _client.LoginAsync(TokenType.Bot, _token);
+                    await _client.LoginAsync(TokenType.Bot, _appSettings.DiscordSettings.Token);
                 }
 
-                var channel = await _client.GetChannelAsync(_channelId) as RestTextChannel;
+                var channel = await _client.GetChannelAsync(_appSettings.DiscordSettings.ChannelId) as RestTextChannel;
                 if (channel != null)
                 {
                     await channel.SendMessageAsync(message);

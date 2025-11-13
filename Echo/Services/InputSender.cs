@@ -25,6 +25,12 @@ namespace Echo.Services
                     var k = (byte)i;
                     released.Add(k);
                     keybd_event(k, 0, 0x0002, 0);
+                    uint scan = MapVirtualKeyEx(k, 0, IntPtr.Zero);
+                    INPUT up = MakeInput((ScanCodeShort)scan, KEYEVENTF.SCANCODE | KEYEVENTF.KEYUP);
+
+
+                    SendInput(1, new[] { up }, INPUT.Size);
+
                 }
             }
 
@@ -43,24 +49,29 @@ namespace Echo.Services
             }
         }
 
+
+        [DllImport("user32.dll")]
+        public static extern uint MapVirtualKeyEx(uint uCode, uint uMapType, IntPtr dwhkl);
+
+        static INPUT MakeInput(ScanCodeShort sc, KEYEVENTF flags, int time = 0) => new INPUT
+        {
+            type = 1, // keyboard
+            U = new()
+            {
+                ki = new KEYBDINPUT
+                {
+                    wVk = 0,
+                    wScan = sc,
+                    dwFlags = flags,
+                    time = time,
+                    dwExtraInfo = UIntPtr.Zero
+                }
+            }
+        };
         public void SendKey(ScanCodeShort scanCode, KeyPressType type = KeyPressType.PRESS)
         {
             // helper to build a single INPUT in one line
-            static INPUT MakeInput(ScanCodeShort sc, KEYEVENTF flags, int time = 0) => new INPUT
-            {
-                type = 1, // keyboard
-                U = new()
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = 0,
-                        wScan = sc,
-                        dwFlags = flags,
-                        time = time,
-                        dwExtraInfo = UIntPtr.Zero
-                    }
-                }
-            };
+
 
             switch (type)
             {

@@ -25,7 +25,7 @@ namespace Echo.Util
                 MapImageTopLeft = (Bitmap)Image.FromFile(@"imgs/minimap_tl.png");
                 MapImageBottomRight = (Bitmap)Image.FromFile(@"imgs/minimap_br.png");
 
-                RespawnImg = (Bitmap)Image.FromFile(@"imgs/respawnok.png");
+                RespawnImg = (Bitmap)Image.FromFile(@"imgs/respawn_tomb.png");
 
 
                 LotdIcon = (Bitmap)Image.FromFile(@"imgs/lordofthedeep.png");

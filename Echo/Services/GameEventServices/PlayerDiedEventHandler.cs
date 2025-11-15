@@ -1,7 +1,10 @@
-﻿using Echo.Models;
+﻿using Echo.Extern;
+using Echo.Models;
+using Echo.Models.Settings;
 using Echo.Services.ImageAnalysis;
 using Echo.Util;
 using System.Drawing;
+using System.IO.Pipes;
 
 namespace Echo.Services.GameEventServices
 {
@@ -12,14 +15,16 @@ namespace Echo.Services.GameEventServices
         readonly GameAnalyzer _gameAnalyzer;
         readonly ScreenshotProvider _screenshotProvider;
         readonly InputSender _inputSender;
+        readonly AppSettings _settings;
 
         private Point? _lastRespawnBoxCoords = null;
 
-        public PlayerDiedEventHandler(GameAnalyzer gameAnalyzer, ScreenshotProvider screenshotProvider, InputSender inputSender)
+        public PlayerDiedEventHandler(GameAnalyzer gameAnalyzer, ScreenshotProvider screenshotProvider, InputSender inputSender, AppSettings settings)
         {
             _gameAnalyzer = gameAnalyzer;
             _screenshotProvider = screenshotProvider;
             _inputSender = inputSender;
+            _settings = settings;
         }
 
         public async Task<GameEventType> EventDetected(PixelSnapshot pixelSnapshot)
@@ -39,11 +44,10 @@ namespace Echo.Services.GameEventServices
 
         public async Task HandleEvent(CancellationToken ct)
         {
-            // NOTE: applying an offset here because the way we take screenshots now means the extra space above messes up the absolute coordinates of the game
-            int yOffset = -40;
-            var pointToClick = new Point(_lastRespawnBoxCoords.Value.X, _lastRespawnBoxCoords.Value.Y + yOffset);
             await Task.Delay(1000, ct);
-            _inputSender.ClickOnPoint(pointToClick);
+            _inputSender.SendKey(_settings.Hotkeys.NpcChatKey, KeyPressType.DOWN);
+            await Task.Delay(4000, ct);
+            _inputSender.SendKey(_settings.Hotkeys.NpcChatKey, KeyPressType.UP);
             await Task.Delay(1000, ct);
         }
     }

@@ -3,7 +3,7 @@
     "JumpKey": "LMENU",
     "RopeLiftKey": "SPACE",
     "NpcChatKey": "KEY_Y",
-    "MenuKey": "KEY_5",
+    "MenuKey": "ESCAPE",
     "AttackKey": "CONTROL",
     "MapKey": "KEY_M"
   },

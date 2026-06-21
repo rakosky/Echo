@@ -10,6 +10,8 @@ namespace Echo.Util
         public static readonly Bitmap MapImageTopLeft;
         public static readonly Bitmap MapImageBottomRight;
 
+        public static readonly Bitmap LdImage;
+
         public static readonly Bitmap RespawnImg;
 
         public static readonly Bitmap LotdIcon;
@@ -24,6 +26,8 @@ namespace Echo.Util
 
                 MapImageTopLeft = (Bitmap)Image.FromFile(@"imgs/minimap_tl.png");
                 MapImageBottomRight = (Bitmap)Image.FromFile(@"imgs/minimap_br.png");
+
+                LdImage = (Bitmap)Image.FromFile(@"imgs/ld.png");
 
                 RespawnImg = (Bitmap)Image.FromFile(@"imgs/respawn_tomb.png");
 

@@ -111,7 +111,6 @@ namespace Echo.Services
             {
                 try
                 {
-                    _logger.LogInformation("Refreshing hooks");
                     await RefreshHooks();
                 }
                 catch (Exception ex)

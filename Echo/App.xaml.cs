@@ -1,19 +1,14 @@
-﻿using Echo.Services;
+﻿using Echo.Models.Settings;
+using Echo.Services;
 using Echo.Services.GameEventServices;
 using Echo.Services.ImageAnalysis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
-using System.Configuration;
-using System.Data;
 using System.Media;
 using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Windows;
-using System.Windows.Navigation;
-using Echo.Models.Settings;
 
 namespace Echo
 {
@@ -47,16 +42,16 @@ namespace Echo
                     .SetMinimumLevel(LogLevel.Information);
             });
 
-            var json = File.ReadAllText("Settings.json");
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("secrets.json", optional: true, reloadOnChange: true)
+                .Build();
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                Converters = { new JsonStringEnumConverter() }
-            };
+            var settings = configuration.Get<AppSettings>()
+                ?? throw new InvalidOperationException("Unable to bind AppSettings from appsettings.json/secrets.json");
 
-            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
-
+            services.AddSingleton<IConfiguration>(configuration);
             services.AddSingleton(settings);
 
             services.AddSingleton<Runner>();
@@ -72,6 +67,7 @@ namespace Echo
             services.AddSingleton<WrongMapGameEventHandler>();
             services.AddSingleton<RuneFailEventHandler>();
             services.AddSingleton<BuffRefresher>();
+            services.AddSingleton<LieDetectorEventHandler>();
 
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<RuneDetectedEventHandler>());
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<PlayerDiedEventHandler>()); 
@@ -79,6 +75,7 @@ namespace Echo
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<WrongMapGameEventHandler>());
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<RuneFailEventHandler>());
             services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<BuffRefresher>());
+            services.AddSingleton<IGameEventHandler>(sp => sp.GetRequiredService<LieDetectorEventHandler>());
 
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<RuneDetectedEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<PlayerDiedEventHandler>());
@@ -86,6 +83,7 @@ namespace Echo
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<WrongMapGameEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<RuneFailEventHandler>());
             services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<BuffRefresher>());
+            services.AddSingleton<IGameEventChecker>(sp => sp.GetRequiredService<LieDetectorEventHandler>());
 
             services.AddSingleton<OrcamRecorder>();
 

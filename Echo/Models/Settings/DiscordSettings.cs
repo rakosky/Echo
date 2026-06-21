@@ -9,6 +9,6 @@ namespace Echo.Models.Settings
     public class DiscordSettings
     {
         public ulong ChannelId { get; set; }
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
     }
 }

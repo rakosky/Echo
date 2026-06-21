@@ -9,11 +9,11 @@ namespace Echo.Models.Settings
 {
     public class AppSettings
     {
-        public HotkeySettings Hotkeys { get; set; }
+        public HotkeySettings Hotkeys { get; set; } = new();
 
-        public ScanCodeShort[] InjectableKeys { get; set; }
+        public ScanCodeShort[] InjectableKeys { get; set; } = [];
 
-        public DiscordSettings DiscordSettings { get; set; }
+        public DiscordSettings DiscordSettings { get; set; } = new();
 
     }
 }

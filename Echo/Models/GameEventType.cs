@@ -6,6 +6,7 @@
         BuffRefresh = 1,
         Rune = 10,
         RuneFail = 15,
+        LieDetected = 25,
         WrongMap = 20,
         PlayerDied = 100,
         GMWarp = 999,

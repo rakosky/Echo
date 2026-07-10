@@ -45,7 +45,7 @@ namespace Echo
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("secrets.json", optional: true, reloadOnChange: true)
+                .AddUserSecrets<App>()
                 .Build();
 
             var settings = configuration.Get<AppSettings>()

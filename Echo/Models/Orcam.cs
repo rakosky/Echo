@@ -18,6 +18,7 @@ namespace Echo.Models
         public KeyPressType Type { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ScanCodeShort Key { get; set; }
-        public int Delay { get; set; }
+        // Delay stored as Stopwatch ticks (long) — absolute timestamp since recording start
+        public long Delay { get; set; }
     }
 }

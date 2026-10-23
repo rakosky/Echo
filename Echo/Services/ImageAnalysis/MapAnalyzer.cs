@@ -28,6 +28,9 @@ namespace Echo.Services.ImageAnalysis
 
         public async Task UpdateMapBounds()
         {
+            _mapBounds = new Rectangle(0, 0, 0, 0);
+            return;
+
             var mapSearchBounds = new Rectangle(0,0, 700, 500);
 
             var imageData = await _screenshotProvider.GetLatestPixels();

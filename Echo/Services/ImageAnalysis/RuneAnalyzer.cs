@@ -24,7 +24,7 @@ namespace Echo.Services.ImageAnalysis
 
             using (var croppedImg = fullImg.Clone(new Rectangle(650, 290, 650, 160), System.Drawing.Imaging.PixelFormat.Format32bppRgb))
             {
-                croppedImg. Save($@"{AppDomain.CurrentDomain.BaseDirectory}screenshots\{DateTime.Now.Ticks}.png");
+              //  croppedImg. Save($@"{AppDomain.CurrentDomain.BaseDirectory}screenshots\{DateTime.Now.Ticks}.png");
 
                 HSV[,] _hsvMap = new HSV[croppedImg.Width, croppedImg.Height];
 

@@ -26,8 +26,8 @@ namespace Echo.Services
             _logger.LogInformation("Recording...");
 
              _commands = new List<OrcamCommand>();
-
-            _timeHolder = TimeGetTime();
+            // use high-resolution stopwatch for timestamps (stored as Stopwatch ticks)
+            _stopwatch = Stopwatch.StartNew();
 
             _hook = InputHookManager.CreateKeyboardHook(HookCallback);
 
@@ -44,7 +44,7 @@ namespace Echo.Services
 
         }
 
-        private uint _timeHolder;
+        private Stopwatch _stopwatch;
         private IntPtr HookCallback(
                 int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -67,9 +67,7 @@ namespace Echo.Services
                 return InputHookManager.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
             }
 
-            var now = TimeGetTime();
-            long elapsed = now - _timeHolder;
-            _timeHolder = now;
+            var timestamp = _stopwatch.ElapsedTicks;
             _commands.Add(new OrcamCommand()
             {
                 Type = wParam switch
@@ -79,10 +77,12 @@ namespace Echo.Services
                     _ => KeyPressType.PRESS
                 },
                 Key = scanCode,
-                Delay = (int)elapsed
+                Delay = timestamp
             });
 
-            _logger.LogInformation($"Key: {scanCode}, Event: {keyboardEvent}, Delay: {elapsed}");
+            // log delay in milliseconds for readability
+            var ms = timestamp * 1000.0 / Stopwatch.Frequency;
+            _logger.LogInformation($"Key: {scanCode}, Event: {keyboardEvent}, TimestampTicks: {timestamp}, TimestampMs: {ms:F2}");
             
             return InputHookManager.CallNextHookEx(_hook.hookID, nCode, wParam, lParam);
         }
@@ -97,7 +97,6 @@ namespace Echo.Services
 
         [DllImport("user32.dll")]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
-        [DllImport("winmm.dll", EntryPoint = "timeGetTime")]
-        private static extern uint TimeGetTime();
+        // Removed timeGetTime usage in favor of Stopwatch
     }
 }

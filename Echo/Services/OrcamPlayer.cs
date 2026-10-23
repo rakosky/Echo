@@ -1,5 +1,7 @@
 ﻿using Echo.Models;
 using Echo.Models.Settings;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using static Echo.Extern.User32;
 
@@ -14,9 +16,9 @@ namespace Echo.Services
         readonly InputSender _inputSender;
         readonly GameFocusManager _gameFocusManager;
         readonly AppSettings _settings;
-        const int MaxDelayVarianceMs = 10;
+        const int MaxDelayVarianceMs = 0;
 
-        const double InjectionChance = .01; // one in every 100 commands will inject a key
+        const double InjectionChance = .00; // one in every 100 commands will inject a key
 
         HashSet<byte> _releasedKeys = new HashSet<byte>();
 
@@ -112,36 +114,64 @@ namespace Echo.Services
             _playbackCTS = new CancellationTokenSource();
             _playbackCT = _playbackCTS.Token;
             IsPlaying = true;
+            // Use a high-resolution stopwatch to schedule commands by absolute ticks
+            var playbackStopwatch = Stopwatch.StartNew();
 
-            // repress all release arrow keys if applicible
-            if (_releasedKeys is not null && _releasedKeys.Count > 0)
-                _inputSender.RepressAll(_releasedKeys);
+            // loopStartTicks anchors the recorded absolute command timestamps to the
+            // current playback loop. When we wrap the enumerator we reset this so
+            // recorded timestamps are applied relative to each loop start.
+            long loopStartTicks = playbackStopwatch.ElapsedTicks;
 
             while (!_playbackCT.IsCancellationRequested)
             {
                 if (!_enumerator.MoveNext())
                 {
+                    // restart loop: reset enumerator and anchor timestamps to now
                     _enumerator.Reset();
                     _enumerator.MoveNext();
+                    loopStartTicks = playbackStopwatch.ElapsedTicks;
                 }
 
-                var random = Random.Shared.NextDouble();
                 var command = _enumerator.Current;
-                
-                if (command.Delay > 30)
-                {
-                    var dir = Random.Shared.NextDouble() > .5 ? 1 : -1;
-                    await Task.Delay(command.Delay + (int)(random * MaxDelayVarianceMs * dir), _playbackCT);
-                }
-                else
-                {
-                    await Task.Delay(command.Delay, _playbackCT);
-                }
-                
-                _inputSender.SendKey(command.Key, command.Type);
 
-                if (random <= InjectionChance)
-                    await HandleRandomKeyInjection();
+                // recorded command.Delay is ticks since recording start; apply loopStartTicks
+                long targetTicks = loopStartTicks + command.Delay;
+
+                long remainingTicks = targetTicks - playbackStopwatch.ElapsedTicks;
+                if (remainingTicks > 0)
+                {
+                    double remainingMs = remainingTicks * 1000.0 / Stopwatch.Frequency;
+
+                    // If there's a coarse wait, use Task.Delay to yield the thread first
+                    if (remainingMs > 12)
+                    {
+                        int delayMs = Math.Max(0, (int)(remainingMs - 8)); // leave ~8ms for tight waiting
+                        try
+                        {
+                            await Task.Delay(delayMs, _playbackCT);
+                        }
+                        catch (TaskCanceledException) { break; }
+                    }
+
+                    // Spin-wait for the remaining short interval to improve precision
+                    while (playbackStopwatch.ElapsedTicks < targetTicks)
+                    {
+                        // small yield to avoid full busy-wait; still tight
+                        Thread.SpinWait(10);
+                        if (_playbackCT.IsCancellationRequested) break;
+                    }
+                }
+
+                // execute command
+                var before = playbackStopwatch.ElapsedTicks;
+                _inputSender.SendKey(command.Key, command.Type);
+                var after = playbackStopwatch.ElapsedTicks;
+
+                // diagnostic logging: report skew in ms between intended target and actual send time
+                var actualMs = after * 1000.0 / Stopwatch.Frequency;
+                var targetMs = targetTicks * 1000.0 / Stopwatch.Frequency;
+                var skewMs = actualMs - targetMs;
+                _logger.LogTrace($"Played key {command.Key} type {command.Type}: targetMs={targetMs:F3}, actualMs={actualMs:F3}, skewMs={skewMs:F3}");
             }
         }
 
